@@ -5,11 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.routers import order
+from app.routers import user
 
 app = FastAPI()
 
-app.include_router(order.router)
+app.include_router(user.router)
 
 @app.get("/healty_check")
 def main_healhy_check():

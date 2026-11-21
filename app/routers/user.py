@@ -7,16 +7,16 @@ from typing import List
 from fastapi import Form
 
 from app.database import get_db
-from app.models.user import email,phone,hashed_passwod,full_name
+from app.models.user import User
 
 router = APIRouter(prefix="/account", tags=["account"])
 
 templates = Jinja2Templates(directory="templates")
 
-@router.post("/register", methods=["POST"])
+@router.post("/register")
 def register(username: str = Form(...), password: str = Form(...)):
     db = Session()
-    user_exists = db.query(full_name).filter(full_name.username == username).first()
+    user_exists = db.query(User).filter(User.phone == username).first()
 
     new_user = User(username=username, password=password)
     db.add(new_user)
@@ -32,10 +32,10 @@ def register_get():
     )
 
 
-@router.post("/login", methods=[ "POST"])
+@router.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
     db = Session()
-    user = db.query(full_name).filter(full_name.username == username).first()
+    user = db.query(User).filter(User.phone == username).first()
     db.close()
     if not user:
         return "User is not registered "
