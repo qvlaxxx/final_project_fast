@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+        {% if ticket %}
+    
+
+    <h1>{{ticket.subject}}</h1>
+    <h3>Author: {{ticket.status}}</h3>
+    <p>{{ticket.description}}</p>
+
+    {% if order.role == "finished" %}
+        <h3>Master: {{full_name}}</h3>
+        {% if ticket.resolution %}
+        <p><span>Resolution:</span> <br>{{ticket.resolution.solution_text}} </p>
+        <p>Created at: {{ticket.resolution.created_at}}</p>
+        {% endif %}
+    {% elif order.role == "working" %}
+        <h3>Master: {{full_name}}</h3>
+        <form action="/order/{{order.id}}/close" method="POST">
+            <textarea name="solution_text" required></textarea>
+            <button type="submit">Finish resolution</button>
+        </form>
+    {% elif ticket.status == "open" %}
+        <form action="/tickets/{{ticket.id}}/assign" method="POST">
+            <button type="submit">Take to work</button>
+        </form>
+    {% else %}
+        <p>Status error</p>
+    {% endif %}
+
+    {% else %}
+        <h1>Error 404: ticket not found</h1>
+    {% endif %}
+
+</body>
+</html>

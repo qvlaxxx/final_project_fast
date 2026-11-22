@@ -17,11 +17,9 @@ templates = Jinja2Templates(directory="templates")
 def register(username: str = Form(...), password: str = Form(...)):
     db = Session()
     user_exists = db.query(User).filter(User.phone == username).first()
-
     new_user = User(username=username, password=password)
     db.add(new_user)
     db.commit()
-
     db.close()
 
 @router.get("/register")

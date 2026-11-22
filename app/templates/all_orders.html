@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+    <a href="/order/create">Create new order</a>
+    
+        {% for ticket in tickets %}
+        <div class="order">
+            <h3>{{ ticket.subject }} </h3>
+            <p>Status: <span> {{ <order class="role"></order> }}</span> </p>
+            {{ order.full_name }}
+            
+            <!-- <p>{{ ticket.description }}</p> --> 
+            <!-- {{ ticket.support.username }} -->
+            <a href="/order/{{order.id}}">Detail</a>
+        </div>
+        {% endfor %}
+
+    
+</div>
+</body>
+</html>
