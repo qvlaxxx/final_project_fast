@@ -13,16 +13,16 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/")
-def all_orders(request: Request, db:Session = Depends(get_db)):
-    all_orders = db.scalars(
+def all_orders(request: Request, db: Session = Depends(get_db)):
+    orders = db.scalars(
         select(Order).where(Order.status == OrderStatus.PENDING)
-        ).all
+    ).all()
     return templates.TemplateResponse(
-        request=request
-        name="all_orders.html"
+        request=request,
+        name="all_orders.html",
         context={
-            "title": "Order"
-            "ordres" all_orders
+            "title": "Order",
+            "orders": orders
         }
     )
 
