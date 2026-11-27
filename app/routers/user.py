@@ -1,48 +1,62 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates # pip install jinja2
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, Form, Request
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
-from typing import List
-from fastapi import Form
+from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
 
-router = APIRouter(prefix="/account", tags=["account"])
-
+router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@router.post("/register")
-def register(username: str = Form(...), password: str = Form(...)):
-    db = Session()
-    user_exists = db.query(User).filter(User.phone == username).first()
-    new_user = User(username=username, password=password)
-    db.add(new_user)
-    db.commit()
-    db.close()
 
 @router.get("/register")
-def register_get():
-    return templates.TemplateResponse(
-        request=Request,
-        name="register.html"
-    )
+def register_get(request: Request):
+    return templates.TemplateResponse(request=request, name="register.html")
+
+
+@router.post("/register")
+def register(
+    request: Request,
+    phone: str = Form(...),
+    full_name: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    existing = db.scalar(select(User).where(User.phone == phone))
+    if existing:
+        return templates.TemplateResponse(
+            request=request,
+            name="register.html",
+            context={"error": "Телефон уже занят"},
+            status_code=400,
+        )
+
+    user = User(phone=phone, full_name=full_name, hashed_password=password)
+    db.add(user)
+    db.commit()
+    return RedirectResponse("/login", status_code=303)
+
+
+@router.get("/login")
+def login_get(request: Request):
+    return templates.TemplateResponse(request=request, name="login.html")
 
 
 @router.post("/login")
-def login(username: str = Form(...), password: str = Form(...)):
-    db = Session()
-    user = db.query(User).filter(User.phone == username).first()
-    db.close()
-    if not user:
-        return "User is not registered "
-    if password != user.password:
-        return "Wrong password "
-
-@router.get("/login")
-def register_get():
-    return templates.TemplateResponse(
-        request=Request,
-        name="login.html"
-    )
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = db.scalar(select(User).where(User.phone == username))
+    if not user or user.hashed_password != password:
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={"error": "Неверный телефон или пароль"},
+            status_code=401,
+        )
+    return RedirectResponse("/orders/", status_code=303)
