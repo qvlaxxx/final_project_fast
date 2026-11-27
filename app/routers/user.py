@@ -29,7 +29,7 @@ def register(
         return templates.TemplateResponse(
             request=request,
             name="register.html",
-            context={"error": "Телефон уже занят"},
+            context={"error": "такий телефон вже зайнятий"},
             status_code=400,
         )
 
@@ -56,7 +56,7 @@ def login(
         return templates.TemplateResponse(
             request=request,
             name="login.html",
-            context={"error": "Неверный телефон или пароль"},
+            context={"error": "невірний пароль, або юзернейм"},
             status_code=401,
         )
     return RedirectResponse("/orders/", status_code=303)
