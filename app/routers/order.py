@@ -26,17 +26,16 @@ def all_orders(request: Request, db: Session = Depends(get_db)):
         }
     )
 
-@router.get("/orders{order_id}")
+@router.get("/orders/{order_id}")
 def id_order(request: Request, db:Session = Depends(get_db)):
     Order = db.get(Order,id_order)
     if not Order:
             raise ValueError("не знайдено")
     return templates.TemplateResponse(
-    request=request
-    name="detail_orders.html"
+    request=request,
+    name="detail_orders.html",
     context={
-        "title": "Order"
-        "orders" detail_orders
+        "title": "Order",
     }
     return Order
 )

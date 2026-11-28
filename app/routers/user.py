@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, Query
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates # pip install jinja2
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from typing import List
+from pydantic import EmailStr
+from urllib.parse import urlencode
 
 from app.database import get_db
-from app.models.user import User
-
+from app.models.user import User, UserRole
+from app.security import hash_password, check_hashed_password, decode_access_token, create_access_token
+from app.routers import templates
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
@@ -40,23 +44,42 @@ def register(
 
 
 @router.get("/login")
-def login_get(request: Request):
-    return templates.TemplateResponse(request=request, name="login.html")
-
+async def login_get(
+    request: Request,
+    error: str | None = Query(None),
+    notification: str | None = Query(None),
+    ):
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={
+            "error": error,
+            "notification": notification
+        }
+    )
 
 @router.post("/login")
-def login(
+async def login_user(
     request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
     db: Session = Depends(get_db),
-):
-    user = db.scalar(select(User).where(User.phone == username))
-    if not user or user.hashed_password != password:
+    username: str = Form(..., max_length=50),
+    password: str = Form(..., max_length=50),
+    ):
+    user = db.scalar(select(User).where(User.username == username))
+    if not user or not check_hashed_password(password, user.hashed_password):
         return templates.TemplateResponse(
             request=request,
             name="login.html",
-            context={"error": "невірний пароль, або юзернейм"},
-            status_code=401,
+            context={"error": "Wrong username or password"}
         )
-    return RedirectResponse("/orders/", status_code=303)
+    
+    token = create_access_token(user.id)
+    params = urlencode({"notification": "Successfully logged in"})
+    response = RedirectResponse(url=f"/orders?{params}", status_code=303)
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        max_age=60 * 5
+    )
+    return response

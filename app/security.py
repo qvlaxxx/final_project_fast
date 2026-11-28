@@ -15,7 +15,7 @@ def check_hashed_password(raw_password: str, hashed_password: str):
     return bcrypt.checkpw(raw_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 def create_access_token(user_id: int):
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
         "iat": now,
